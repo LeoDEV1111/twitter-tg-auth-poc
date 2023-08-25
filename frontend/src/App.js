@@ -47,6 +47,7 @@ function App() {
       }
     }
 
+    console.log({tgUser})
     if (tgUser.id > 0) {
       checkTgUser()
     }
