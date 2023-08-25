@@ -50,7 +50,7 @@ function App() {
     if (tgUser.id > 0) {
       checkTgUser()
     }
-  }, [tgUser])
+  }, [tgUser, botKey])
 
   useEffect(() => {
     popupRef.current = popup;
@@ -150,7 +150,7 @@ function App() {
           isTgUserInTargetGroup === "no" ? (
             <div>
               <div> You are not in a {targetTgGroupId} group </div>
-              <div> Please join: <a href={targetTgGroupLink} target="_blank">here</a></div>
+              <div> Please join: <a href={targetTgGroupLink} target="_blank" rel="noreferrer">here</a></div>
             </div>
             ) : (
               <div></div>
