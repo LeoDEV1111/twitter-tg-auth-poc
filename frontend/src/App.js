@@ -20,21 +20,27 @@ function App() {
   const targetTgGroupLink = "https://t.me/leotelegramapitest"
   const botKey = process.env.REACT_APP_BOT_KEY;
 
-  useEffect(() => {
-    setTgUser({
-      auth_date: 1692939808,
-      first_name: "Leo",
-      hash: "677ffc33ce3c146dcb7d1915c9094eabc9682ae32831df11137a160c6ef9ac8b",
-      id: 1871734582,
-      username: "ModernLeoDEV"
-    })
-  }, [])
+  // useEffect(() => {
+  //   setTgUser({
+  //     auth_date: 1692939808,
+  //     first_name: "Leo",
+  //     hash: "677ffc33ce3c146dcb7d1915c9094eabc9682ae32831df11137a160c6ef9ac8b",
+  //     id: 1871734582,
+  //     username: "ModernLeoDEV"
+  //   })
+  // }, [])
 
   useEffect(() => {
     const checkTgUser = async () => {
       const res = await axios.get(`https://api.telegram.org/bot${botKey}/getChatMember?chat_id=${targetTgGroupId}&user_id=${tgUser.id}`);
+      // const res = await axios.get(`https://api.telegram.org/bot${botKey}/getChatMember?chat_id=${targetTgGroupId}&user_id=5961079027`);
       console.log(res.data)
-      if (res.data.ok) {
+      console.log(res.data.result.status)
+      if (res.data.ok && 
+        (res.data.result.status === "member" || 
+          res.data.result.status === "creator" || 
+          res.data.result.status === "administrator")
+      ) {
         setIsTgUserInTargetGroup("yes")
       } else {
         setIsTgUserInTargetGroup("no")
