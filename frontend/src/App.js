@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import FontAwesome from 'react-fontawesome';
-import Footer from './Footer';
 import './App.css';
 import { TLoginButton, TLoginButtonSize } from 'react-telegram-auth';
 
