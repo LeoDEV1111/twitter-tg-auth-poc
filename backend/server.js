@@ -1,168 +1,90 @@
-'use strict';
+const express = require('express')
+const http = require('http')
+const passport = require('passport')
+const session = require('express-session')
+const cors = require('cors')
+const socketio = require('socket.io')
+const { Strategy: TwitterStrategy } = require('passport-twitter')
+const env = require("dotenv");
+env.config();
 
-//mongoose file must be loaded before all other files in order to provide
-// models to other modules
-var mongoose = require('./mongoose'),
-  passport = require('passport'),
-  express = require('express'),
-  jwt = require('jsonwebtoken'),
-  expressJwt = require('express-jwt'),
-  router = express.Router(),
-  cors = require('cors'),
-  bodyParser = require('body-parser'),
-  request = require('request'),
-  twitterConfig = require('./twitter.config.js');
+// Private api keys that you will get when registering an app on 
+// apps.twitter.com
+const TWITTER_CONFIG = {
+  consumerKey: process.env.TWITTER_KEY,
+  consumerSecret: process.env.TWITTER_SECRET,
+  // make sure the call back url matches what was set on Twitter
+  // when registering the app
+  callbackURL: 'http://127.0.0.1:8080/twitter/callback'
+  // callbackURL: 'https://pariz.trace.network'
+}
 
-mongoose();
+// Create the server and allow express and sockets to run on the same port
+const app = express()
+const server = http.createServer(app)
+const io = socketio(server)
 
-var User = require('mongoose').model('User');
-var passportConfig = require('./passport');
+// Allows the application to accept JSON and use passport
+app.use(express.json())
+app.use(passport.initialize())
 
-//setup configuration for facebook login
-passportConfig();
+// Set up cors to allow us to accept requests from our client
+app.use(cors({
+  origin: 'http://localhost:3000'
+})) 
 
-var app = express();
+// saveUninitialized: true allows us to attach the socket id
+// to the session before we have authenticated with Twitter  
+app.use(session({ 
+  secret: 'KeyboardKittens', 
+  resave: true, 
+  saveUninitialized: true 
+}))
 
-// enable cors
-var corsOption = {
-  origin: true,
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
-  exposedHeaders: ['x-auth-token']
-};
-app.use(cors(corsOption));
+// allows us to save the user into the session
+passport.serializeUser((user, cb) => cb(null, user))
+passport.deserializeUser((obj, cb) => cb(null, obj))
 
-//rest API requirements
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-app.use(bodyParser.json());
-
-router.route('/health-check').get(function(req, res) {
-  res.status(200);
-  res.send('Hello World');
-});
-
-var createToken = function(auth) {
-  return jwt.sign({
-    id: auth.id
-  }, 'my-secret',
-  {
-    expiresIn: 60 * 120
-  });
-};
-
-var generateToken = function (req, res, next) {
-  req.token = createToken(req.auth);
-  return next();
-};
-
-var sendToken = function (req, res) {
-  res.setHeader('x-auth-token', req.token);
-  return res.status(200).send(JSON.stringify(req.user));
-};
-
-router.route('/auth/twitter/reverse')
-  .post(function(req, res) {
-    request.post({
-      url: 'https://api.twitter.com/oauth/request_token',
-      oauth: {
-        // oauth_callback: "http%3A%2F%2Flocalhost%3A3000%2Ftwitter-callback",
-        oauth_callback: "https%3A%2F%2Fpariz.trace.network",
-        consumer_key: twitterConfig.consumerKey,
-        consumer_secret: twitterConfig.consumerSecret
-      }
-    }, function (err, r, body) {
-      if (err) {
-        console.log(err)
-        return res.send(500, { message: e.message });
-      }
-
-      var jsonStr = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
-      console.log(jsonStr)
-      res.send(JSON.parse(jsonStr));
-    });
-  });
-
-router.route('/auth/twitter')
-  .post((req, res, next) => {
-    console.log("twitter auth callback called")
-    console.log("req query = ", req?.query)
-    console.log("req user = ", req?.user)
-    request.post({
-      url: `https://api.twitter.com/oauth/access_token?oauth_verifier`,
-      oauth: {
-        consumer_key: twitterConfig.consumerKey,
-        consumer_secret: twitterConfig.consumerSecret,
-        token: req.query.oauth_token
-      },
-      form: { oauth_verifier: req.query.oauth_verifier }
-    }, function (err, r, body) {
-      if (err) {
-        console.log(err)
-        return res.send(500, { message: err.message });
-      }
-
-      const bodyString = '{ "' + body.replace(/&/g, '", "').replace(/=/g, '": "') + '"}';
-      const parsedBody = JSON.parse(bodyString);
-      console.log(parsedBody)
-      req.body['oauth_token'] = parsedBody.oauth_token;
-      req.body['oauth_token_secret'] = parsedBody.oauth_token_secret;
-      req.body['user_id'] = parsedBody.user_id;
-
-      next();
-    });
-  }, passport.authenticate('twitter-token', {session: false}), function(req, res, next) {
-      if (!req.user) {
-        return res.send(401, 'User Not Authenticated');
-      }
-
-      // prepare token for API
-      req.auth = {
-        id: req.user.id
-      };
-
-      return next();
-    }, generateToken, sendToken);
-
-//token handling middleware
-var authenticate = expressJwt({
-  secret: 'my-secret',
-  requestProperty: 'auth',
-  getToken: function(req) {
-    if (req.headers['x-auth-token']) {
-      return req.headers['x-auth-token'];
+console.log({TWITTER_CONFIG})
+// Basic setup with passport and Twitter
+passport.use(new TwitterStrategy(
+  TWITTER_CONFIG, 
+  (accessToken, refreshToken, profile, cb) => {
+    // console.log({accessToken, refreshToken, profile})
+    // save the user right here to a database if you want
+    const user = { 
+        name: profile.username,
+        photo: profile.photos[0].value.replace(/_normal/, '')
     }
-    return null;
-  }
-});
+    cb(null, user)
+  })
+)
 
-var getCurrentUser = function(req, res, next) {
-  User.findById(req.auth.id, function(err, user) {
-    if (err) {
-      next(err);
-    } else {
-      req.user = user;
-      next();
-    }
-  });
-};
+// Middleware that triggers the PassportJs authentication process
+const twitterAuth = passport.authenticate('twitter')
 
-var getOne = function (req, res) {
-  var user = req.user.toObject();
+// This custom middleware picks off the socket id (that was put on req.query)
+// and stores it in the session so we can send back the right info to the 
+// right socket
+const addSocketIdToSession = (req, res, next) => {
+  req.session.socketId = req.query.socketId
+  next()
+}
 
-  delete user['twitterProvider'];
-  delete user['__v'];
+// This is endpoint triggered by the popup on the client which starts the whole
+// authentication process
+app.get('/twitter', addSocketIdToSession, twitterAuth)
 
-  res.json(user);
-};
-
-router.route('/auth/me')
-  .get(authenticate, getCurrentUser, getOne);
-
-app.use('/api/v1', router);
-
-app.listen(4000);
-module.exports = app;
-
-console.log('Server running at http://localhost:4000/');
+// This is the endpoint that Twitter sends the user information to. 
+// The twitterAuth middleware attaches the user to req.user and then
+// the user info is sent to the client via the socket id that is in the 
+// session. 
+app.get('/twitter/callback', twitterAuth, (req, res) => {
+  console.log(req.query)
+  console.log(req.user.name)
+  io.in(req.session.socketId).emit('user', req.user)
+  res.end()
+})
+server.listen(8080, () => {
+  console.log('listening...')
+})
