@@ -15,9 +15,9 @@ const TWITTER_CONFIG = {
   consumerSecret: process.env.TWITTER_SECRET,
   // make sure the call back url matches what was set on Twitter
   // when registering the app
-  callbackURL: 'https://main--celadon-dolphin-c51d55.netlify.app'
+  // callbackURL: 'https://twitter-tg-auth-server.onrender.com/twitter/callback'
   // callbackURL: 'http://127.0.0.1:8080/twitter/callback'
-  // callbackURL: 'https://pariz.trace.network'
+  callbackURL: process.env.CALLBACK_URL
 }
 
 // Create the server and allow express and sockets to run on the same port
@@ -31,7 +31,9 @@ app.use(passport.initialize())
 
 // Set up cors to allow us to accept requests from our client
 app.use(cors({
-  origin: 'https://main--celadon-dolphin-c51d55.netlify.app'
+  origin: process.env.CLIENT_ORIGIN
+  // origin: 'http://localhost:3000'
+  // origin: 'https://main--celadon-dolphin-c51d55.netlify.app'
 })) 
 
 // saveUninitialized: true allows us to attach the socket id
