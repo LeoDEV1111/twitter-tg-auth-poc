@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import axios from 'axios';
 import FontAwesome from 'react-fontawesome';
 import './App.css';
 import { TLoginButton, TLoginButtonSize } from 'react-telegram-auth';
@@ -9,10 +10,41 @@ const socket = io(API_URL);
 
 function App() {
   const [user, setUser] = useState({});
+  const [tgUser, setTgUser] = useState({});
   const [disabled, setDisabled] = useState('');
   const [popup, setPopup] = useState(null);
+  const [isTgUserInTargetGroup, setIsTgUserInTargetGroup] = useState("none");
 
   const popupRef = React.useRef(null)
+  const targetTgGroupId = "@leotelegramapitest"
+  const targetTgGroupLink = "https://t.me/leotelegramapitest"
+  const botKey = process.env.REACT_APP_BOT_KEY;
+
+  useEffect(() => {
+    setTgUser({
+      auth_date: 1692939808,
+      first_name: "Leo",
+      hash: "677ffc33ce3c146dcb7d1915c9094eabc9682ae32831df11137a160c6ef9ac8b",
+      id: 1871734582,
+      username: "ModernLeoDEV"
+    })
+  }, [])
+
+  useEffect(() => {
+    const checkTgUser = async () => {
+      const res = await axios.get(`https://api.telegram.org/bot${botKey}/getChatMember?chat_id=${targetTgGroupId}&user_id=${tgUser.id}`);
+      console.log(res.data)
+      if (res.data.ok) {
+        setIsTgUserInTargetGroup("yes")
+      } else {
+        setIsTgUserInTargetGroup("no")
+      }
+    }
+
+    if (tgUser.id > 0) {
+      checkTgUser()
+    }
+  }, [tgUser])
 
   useEffect(() => {
     popupRef.current = popup;
@@ -101,10 +133,24 @@ function App() {
         cornerRadius={20}
         onAuthCallback={(user) => {
           console.log('Hello, user!', user);
+          setTgUser(user);
         }}
         requestAccess={'write'}
         additionalClasses={'css-class-for-wrapper'}
       />
+      {isTgUserInTargetGroup === "yes" ? (
+        <div> You are in a {targetTgGroupId} group</div>
+        ) : (
+          isTgUserInTargetGroup === "no" ? (
+            <div>
+              <div> You are not in a {targetTgGroupId} group </div>
+              <div> Please join: <a href={targetTgGroupLink} target="_blank">here</a></div>
+            </div>
+            ) : (
+              <div></div>
+          )
+        )
+      }
     </div>
   );
 }
