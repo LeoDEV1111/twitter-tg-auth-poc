@@ -4,7 +4,7 @@ import FontAwesome from 'react-fontawesome';
 import './App.css';
 import { TLoginButton, TLoginButtonSize } from 'react-telegram-auth';
 
-const API_URL = 'http://127.0.0.1:8080';
+const API_URL = process.env.REACT_APP_API_URL;
 const socket = io(API_URL);
 
 function App() {
