@@ -155,6 +155,7 @@ function App() {
         }}
         requestAccess={'write'}
         additionalClasses={'css-class-for-wrapper'}
+        ref={iframeRef}
       />
 
       <button 
