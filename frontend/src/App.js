@@ -83,8 +83,7 @@ function App() {
     const left = window.innerWidth / 2 - width / 2;
     const top = window.innerHeight / 2 - height / 2;
 
-    // const url = `${API_URL}/twitter?socketId=${socket.id}`;
-    const url = "https://oauth.telegram.org/auth?bot_id=6419040191&origin=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app&embed=1&request_access=write&lang=en&return_to=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app%2F";
+    const url = `${API_URL}/twitter?socketId=${socket.id}`;
     const newPopup = window.open(
       url,
       '',
@@ -115,7 +114,7 @@ function App() {
     if (iframeRef.current) {
       // Set the src of the iframe to the Telegram authentication URL
       // iframeRef.current.src = "https://oauth.telegram.org/auth?bot_id=6419040191&origin=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app&embed=1&request_access=write&lang=en&return_to=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app%2F"; // Replace with the actual URL
-      // iframeRef.current.src = "https://oauth.telegram.org/embed/letpariztest_bot?origin=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app&return_to=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app%2F&size=large&userpic=false&request_access=write&radius=20&lang=en"
+      iframeRef.current.src = "https://oauth.telegram.org/embed/letpariztest_bot?origin=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app&return_to=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app%2F&size=large&userpic=false&request_access=write&radius=20&lang=en"
     }
   };
 
@@ -160,7 +159,7 @@ function App() {
         ref={iframeRef}
       />
 
-      <button 
+      {/* <button 
         style={{
           position: 'absolute',
           top: 0,
@@ -173,7 +172,7 @@ function App() {
         onClick={handleClick}
       >
         Login with Scalar
-      </button>
+      </button> */}
 
       {isTgUserInTargetGroup === "yes" ? (
         <div> You are in a {targetTgGroupId} group</div>
