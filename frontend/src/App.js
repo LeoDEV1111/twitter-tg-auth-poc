@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import axios from 'axios';
 import FontAwesome from 'react-fontawesome';
@@ -107,6 +107,16 @@ function App() {
 
   const { name, photo } = user;
 
+  const iframeRef = useRef(null);
+
+  const handleClick = () => {
+    if (iframeRef.current) {
+      // Set the src of the iframe to the Telegram authentication URL
+      iframeRef.current.src = "https://oauth.telegram.org/auth?bot_id=6419040191&origin=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app&embed=1&request_access=write&lang=en&return_to=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app%2F"; // Replace with the actual URL
+    }
+  };
+
+
   return (
     <div className={'container'}>
       {/* If there is a user, show the user */}
@@ -145,6 +155,22 @@ function App() {
         requestAccess={'write'}
         additionalClasses={'css-class-for-wrapper'}
       />
+
+      <button 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          backgroundColor: 'red',
+          color: 'white',
+          border: 'none',
+          cursor: 'pointer'
+        }}
+        onClick={handleClick}
+      >
+        Login with Scalar
+      </button>
+
       {isTgUserInTargetGroup === "yes" ? (
         <div> You are in a {targetTgGroupId} group</div>
         ) : (
