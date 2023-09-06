@@ -83,7 +83,8 @@ function App() {
     const left = window.innerWidth / 2 - width / 2;
     const top = window.innerHeight / 2 - height / 2;
 
-    const url = `${API_URL}/twitter?socketId=${socket.id}`;
+    // const url = `${API_URL}/twitter?socketId=${socket.id}`;
+    const url = "https://oauth.telegram.org/auth?bot_id=6419040191&origin=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app&embed=1&request_access=write&lang=en&return_to=https%3A%2F%2Fmain--celadon-dolphin-c51d55.netlify.app%2F";
     const newPopup = window.open(
       url,
       '',
